@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
 import { Send, Loader2 } from "lucide-react";
 import { commentService } from "../services/commentService";
 
@@ -10,7 +10,7 @@ import { commentService } from "../services/commentService";
  * @param {Function} props.onCommentAdded - Callback when comment is successfully added
  */
 export default function CommentInput({ storyId, onCommentAdded }) {
-    const { isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
+    const { isAuthenticated, getAccessToken } = useAuth();
     const [content, setContent] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -20,7 +20,7 @@ export default function CommentInput({ storyId, onCommentAdded }) {
 
         // Require authentication
         if (!isAuthenticated) {
-            loginWithRedirect();
+            window.dispatchEvent(new CustomEvent("auth:open"));
             return;
         }
 
@@ -41,7 +41,7 @@ export default function CommentInput({ storyId, onCommentAdded }) {
             setError(null);
 
             const response = await commentService.createComment(
-                getAccessTokenSilently,
+                getAccessToken,
                 storyId,
                 trimmedContent
             );
@@ -75,7 +75,7 @@ export default function CommentInput({ storyId, onCommentAdded }) {
             <div className="card-fun bg-gradient-to-br from-blue-100 to-purple-100 border-4 border-purple-300 rounded-2xl p-6 text-center">
                 <p className="text-purple-700 mb-4 font-bold text-lg">🔐 Sign in to leave a comment!</p>
                 <button
-                    onClick={() => loginWithRedirect()}
+                    onClick={() => window.dispatchEvent(new CustomEvent("auth:open"))}
                     className="btn-fun bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-full font-bold shadow-lg"
                 >
                     ✨ Sign In

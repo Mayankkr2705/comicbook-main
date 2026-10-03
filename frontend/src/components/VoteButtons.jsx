@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
 import { storyService } from "../services/storyService";
 
 /**
@@ -19,8 +19,7 @@ export default function VoteButtons({
   initialUserVote = null,
   onVoteChange,
 }) {
-  const { isAuthenticated, getAccessTokenSilently, loginWithRedirect } =
-    useAuth0();
+  const { isAuthenticated, getAccessToken } = useAuth();
 
   // Local state for optimistic updates
   const [upvotes, setUpvotes] = useState(initialUpvotes);
@@ -33,7 +32,7 @@ export default function VoteButtons({
   const handleVote = async (voteType) => {
     // Require authentication
     if (!isAuthenticated) {
-      loginWithRedirect();
+      window.dispatchEvent(new CustomEvent("auth:open"));
       return;
     }
 
@@ -42,10 +41,6 @@ export default function VoteButtons({
       setError(null);
 
       // Optimistic update
-      const previousUpvotes = upvotes;
-      const previousDownvotes = downvotes;
-      const previousUserVote = userVote;
-
       // Calculate optimistic state
       let newUpvotes = upvotes;
       let newDownvotes = downvotes;
@@ -84,13 +79,13 @@ export default function VoteButtons({
       if (userVote === voteType) {
         // Remove vote
         response = await storyService.removeVote(
-          getAccessTokenSilently,
+          getAccessToken,
           storyId
         );
       } else {
         // Add or change vote
         response = await storyService.voteStory(
-          getAccessTokenSilently,
+          getAccessToken,
           storyId,
           voteType
         );

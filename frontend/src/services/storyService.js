@@ -20,7 +20,7 @@ export const storyService = {
   /**
    * Get a single story by ID
    * @param {string} id - Story ID
-   * @param {Function} getAccessToken - Optional function to get Auth0 access token for private stories
+  * @param {Function} getAccessToken - Optional function to get the local JWT for private stories
    * @returns {Promise<Object>} Story data
    */
   getStoryById: async (id, getAccessToken = null) => {
@@ -39,7 +39,7 @@ export const storyService = {
 
   /**
    * Get stories created by the authenticated user
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @returns {Promise<Object>} User's stories
    */
   getMyStories: async (getAccessToken) => {
@@ -57,7 +57,7 @@ export const storyService = {
 
   /**
    * Create a new story
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {Object} storyData - Story data { images: [{url: string}], visibility: 'public'|'private' }
    * @returns {Promise<Object>} Created story
    */
@@ -80,7 +80,7 @@ export const storyService = {
 
   /**
    * Update an existing story
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {string} id - Story ID
    * @param {Object} storyData - Updated story data
    * @returns {Promise<Object>} Updated story
@@ -104,7 +104,7 @@ export const storyService = {
 
   /**
    * Delete a story
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {string} id - Story ID
    * @returns {Promise<Object>} Deletion confirmation
    */
@@ -125,7 +125,7 @@ export const storyService = {
 
   /**
    * Vote on a story (upvote or downvote)
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {string} id - Story ID
    * @param {string} voteType - 'upvote' or 'downvote'
    * @returns {Promise<Object>} Updated vote counts and user vote status
@@ -149,7 +149,7 @@ export const storyService = {
 
   /**
    * Remove vote from a story
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {string} id - Story ID
    * @returns {Promise<Object>} Updated vote counts
    */
@@ -170,7 +170,7 @@ export const storyService = {
 
   /**
    * Update story visibility
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {string} id - Story ID
    * @param {string} visibility - 'public' or 'private'
    * @returns {Promise<Object>} Updated story

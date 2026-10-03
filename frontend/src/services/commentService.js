@@ -16,7 +16,7 @@ export const commentService = {
 
   /**
    * Create a new comment on a story
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {string} storyId - Story ID
    * @param {string} content - Comment content
    * @returns {Promise<Object>} Created comment
@@ -40,7 +40,7 @@ export const commentService = {
 
   /**
    * Delete a comment
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {string} storyId - Story ID
    * @param {string} commentId - Comment ID
    * @returns {Promise<Object>} Deletion confirmation

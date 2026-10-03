@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
 import { User, Loader2, Settings } from "lucide-react";
 import { userService } from "../services/userService";
 import StoryGrid from "../components/StoryGrid";
@@ -10,7 +10,7 @@ import StoryGrid from "../components/StoryGrid";
  * @param {Function} props.onStoryClick - Callback when a story is clicked
  */
 export default function ProfilePage({ onStoryClick }) {
-  const { user: auth0User, getAccessTokenSilently } = useAuth0();
+  const { user, getAccessToken } = useAuth();
   const [activeTab, setActiveTab] = useState("stories");
   const [userProfile, setUserProfile] = useState(null);
   const [stories, setStories] = useState([]);
@@ -26,7 +26,7 @@ export default function ProfilePage({ onStoryClick }) {
 
         // Fetch user stories
         const storiesResponse = await userService.getUserStories(
-          getAccessTokenSilently
+          getAccessToken
         );
         if (storiesResponse.success) {
           setStories(storiesResponse.stories || []);
@@ -35,14 +35,13 @@ export default function ProfilePage({ onStoryClick }) {
         // Try to fetch user profile (may not exist yet)
         try {
           const profileResponse = await userService.getCurrentUser(
-            getAccessTokenSilently
+            getAccessToken
           );
           if (profileResponse.success) {
             setUserProfile(profileResponse.user);
           }
-        } catch (profileErr) {
-          // Profile might not exist yet, use Auth0 data
-          console.log("Using Auth0 profile data");
+        } catch {
+          // Profile might not exist yet, use the authenticated user data.
         }
       } catch (err) {
         console.error("Error fetching profile data:", err);
@@ -53,7 +52,7 @@ export default function ProfilePage({ onStoryClick }) {
     };
 
     fetchData();
-  }, [getAccessTokenSilently]);
+  }, [getAccessToken]);
 
   // Handle story deleted
   const handleStoryDeleted = (storyId) => {
@@ -71,8 +70,8 @@ export default function ProfilePage({ onStoryClick }) {
 
   // Get display name
   const displayName =
-    userProfile?.username || auth0User?.name || auth0User?.email || "User";
-  const displayEmail = userProfile?.email || auth0User?.email || "";
+    userProfile?.username || user?.username || user?.email || "User";
+  const displayEmail = userProfile?.email || user?.email || "";
 
   // Loading state
   if (loading) {
@@ -121,9 +120,9 @@ export default function ProfilePage({ onStoryClick }) {
         <div className="flex items-start gap-8 flex-wrap">
           {/* Avatar */}
           <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400 flex items-center justify-center flex-shrink-0 border-6 border-white shadow-2xl relative">
-            {auth0User?.picture ? (
+            {user?.picture ? (
               <img
-                src={auth0User.picture}
+                src={user.picture}
                 alt={displayName}
                 className="w-full h-full rounded-full object-cover"
                 onError={(e) => {
@@ -134,7 +133,7 @@ export default function ProfilePage({ onStoryClick }) {
             ) : null}
             <div
               className="w-full h-full rounded-full flex items-center justify-center"
-              style={{ display: auth0User?.picture ? "none" : "flex" }}
+              style={{ display: user?.picture ? "none" : "flex" }}
             >
               <span className="text-white text-5xl font-bold">
                 {getInitials(displayName)}

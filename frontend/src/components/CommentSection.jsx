@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
 import { Trash2, User, Loader2 } from "lucide-react";
 import { commentService } from "../services/commentService";
 import CommentInput from "./CommentInput";
@@ -10,7 +10,7 @@ import CommentInput from "./CommentInput";
  * @param {string} props.storyId - Story ID to fetch comments for
  */
 export default function CommentSection({ storyId }) {
-    const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+    const { user, isAuthenticated, getAccessToken } = useAuth();
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -60,7 +60,7 @@ export default function CommentSection({ storyId }) {
             setDeletingId(commentId);
 
             const response = await commentService.deleteComment(
-                getAccessTokenSilently,
+                getAccessToken,
                 storyId,
                 commentId
             );
@@ -95,7 +95,7 @@ export default function CommentSection({ storyId }) {
     // Check if user owns a comment
     const isCommentOwner = (comment) => {
         if (!isAuthenticated || !user) return false;
-        return comment.author?._id === user.sub || comment.author?.id === user.sub;
+        return comment.author?._id === user._id || comment.author?.id === user.id;
     };
 
     // Get visible comments based on pagination

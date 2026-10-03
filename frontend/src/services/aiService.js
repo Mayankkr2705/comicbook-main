@@ -15,7 +15,7 @@ export const aiService = {
 
   /**
    * Generate comic images using AI
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {string} prompt - Text prompt for comic generation
    * @param {string} provider - AI provider (uses 'openrouter')
    * @param {number} panels - Number of panels to generate (1-6)
@@ -47,7 +47,7 @@ export const aiService = {
 
   /**
    * Generate AI story text
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {string} prompt - Text prompt for story generation
    * @param {number} maxWords - Maximum words for the story (50-500, default 250)
    * @returns {Promise<Object>} Generated story data

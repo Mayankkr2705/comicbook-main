@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
 import { Lock, Globe, Trash2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { storyService } from "../services/storyService";
 
@@ -17,7 +17,7 @@ export default function StoryGrid({
     onStoryDeleted,
     onVisibilityChanged,
 }) {
-    const { getAccessTokenSilently } = useAuth0();
+    const { getAccessToken } = useAuth();
     const [deletingId, setDeletingId] = useState(null);
     const [togglingId, setTogglingId] = useState(null);
 
@@ -32,7 +32,7 @@ export default function StoryGrid({
         try {
             setDeletingId(storyId);
 
-            const response = await storyService.deleteStory(getAccessTokenSilently, storyId);
+            const response = await storyService.deleteStory(getAccessToken, storyId);
 
             if (response.success) {
                 if (onStoryDeleted) {
@@ -57,7 +57,7 @@ export default function StoryGrid({
             setTogglingId(story._id);
 
             const response = await storyService.updateVisibility(
-                getAccessTokenSilently,
+                getAccessToken,
                 story._id,
                 newVisibility
             );

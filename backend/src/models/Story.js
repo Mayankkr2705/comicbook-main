@@ -47,7 +47,7 @@ const storySchema = new mongoose.Schema({
         min: 0
     },
     author: {
-        // author will be the Auth0 user id (string) which we store as the User _id
+        // Store the local User id as the story author.
         type: String,
         ref: 'User',
         required: true

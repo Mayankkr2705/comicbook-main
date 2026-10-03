@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
 import { ArrowLeft, User, Clock, Loader2, Lock, ChevronLeft, ChevronRight } from "lucide-react";
 import { storyService } from "../services/storyService";
 import VoteButtons from "../components/VoteButtons";
@@ -13,7 +13,7 @@ import TextToSpeech from "../components/TextToSpeech";
  * @param {Function} props.onBack - Callback to navigate back
  */
 export default function StoryDetailPage({ storyId, onBack }) {
-    const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
+    const { getAccessToken, isAuthenticated, user } = useAuth();
     const [story, setStory] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -28,7 +28,7 @@ export default function StoryDetailPage({ storyId, onBack }) {
                 setError(null);
                 setAccessDenied(false);
 
-                const getToken = isAuthenticated ? getAccessTokenSilently : null;
+                const getToken = isAuthenticated ? getAccessToken : null;
                 const response = await storyService.getStoryById(storyId, getToken);
 
                 if (response.success) {
@@ -51,7 +51,7 @@ export default function StoryDetailPage({ storyId, onBack }) {
         if (storyId) {
             fetchStory();
         }
-    }, [storyId, isAuthenticated, getAccessTokenSilently]);
+    }, [storyId, isAuthenticated, getAccessToken]);
 
     // Handle vote change
     const handleVoteChange = (voteData) => {
@@ -80,7 +80,7 @@ export default function StoryDetailPage({ storyId, onBack }) {
     // Check if current user is the author
     const isAuthor = () => {
         if (!isAuthenticated || !user || !story) return false;
-        return story.author?._id === user.sub || story.author?.id === user.sub;
+        return story.author?._id === user._id || story.author?.id === user.id;
     };
 
     // Carousel navigation handlers

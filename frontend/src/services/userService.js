@@ -3,7 +3,7 @@ const API_URL = import.meta.env.VITE_API_BASE || "http://localhost:3000";
 export const userService = {
   /**
    * Get current authenticated user's profile
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @returns {Promise<Object>} User profile data
    */
   getCurrentUser: async (getAccessToken) => {
@@ -22,7 +22,7 @@ export const userService = {
 
   /**
    * Update user profile
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @param {Object} profileData - Profile data to update (username, email)
    * @returns {Promise<Object>} Updated user profile
    */
@@ -45,7 +45,7 @@ export const userService = {
 
   /**
    * Get user's stories (both public and private)
-   * @param {Function} getAccessToken - Function to get Auth0 access token
+  * @param {Function} getAccessToken - Function to get the local JWT
    * @returns {Promise<Object>} User's stories
    */
   getUserStories: async (getAccessToken) => {

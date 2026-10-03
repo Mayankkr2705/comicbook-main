@@ -6,8 +6,7 @@ import { storyService } from "../services/storyService";
 import TextToSpeech from "./TextToSpeech";
 
 export default function StoryGenerator() {
-  const { isAuthenticated, getAccessToken } = useAuth();
-  const getAccessTokenSilently = getAccessToken;
+  const { getAccessToken } = useAuth();
 
   // Form state
   const [prompt, setPrompt] = useState("");
@@ -39,7 +38,7 @@ export default function StoryGenerator() {
       setSuccess(false);
 
       const response = await aiService.generateStoryText(
-        getAccessTokenSilently,
+        getAccessToken,
         prompt.trim(),
         maxWords
       );
@@ -80,7 +79,7 @@ export default function StoryGenerator() {
       setPublishing(true);
       setError(null);
 
-      await storyService.createStory(getAccessTokenSilently, {
+      await storyService.createStory(getAccessToken, {
         title: title.trim(),
         content: generatedStory,
         description: `AI-generated story (${wordCount} words)`,

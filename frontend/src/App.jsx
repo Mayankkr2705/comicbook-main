@@ -16,6 +16,15 @@ function App() {
   const [showAuthModal, setShowAuthModal] = React.useState(false);
   const [authTab, setAuthTab] = React.useState("login");
 
+  React.useEffect(() => {
+    const openAuth = () => {
+      setAuthTab("login");
+      setShowAuthModal(true);
+    };
+    window.addEventListener("auth:open", openAuth);
+    return () => window.removeEventListener("auth:open", openAuth);
+  }, []);
+
   const handleNavigate = (viewId) => {
     if (viewId === "login") {
       setAuthTab("login");

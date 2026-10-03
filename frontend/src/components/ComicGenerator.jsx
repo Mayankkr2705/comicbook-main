@@ -6,7 +6,6 @@ import { storyService } from "../services/storyService";
 
 export default function ComicGenerator() {
   const { isAuthenticated, getAccessToken } = useAuth();
-  const getAccessTokenSilently = getAccessToken;
 
   // Form state
   const [prompt, setPrompt] = useState("");
@@ -38,7 +37,7 @@ export default function ComicGenerator() {
       setSuccess(false);
 
       const response = await aiService.generateComicImage(
-        getAccessTokenSilently,
+        getAccessToken,
         prompt.trim(),
         "openrouter",
         panels
@@ -60,7 +59,7 @@ export default function ComicGenerator() {
   // Handle publish story
   const handlePublish = async () => {
     if (!isAuthenticated) {
-      loginWithRedirect();
+      window.dispatchEvent(new CustomEvent("auth:open"));
       return;
     }
 
@@ -87,7 +86,7 @@ export default function ComicGenerator() {
       };
 
       const response = await storyService.createStory(
-        getAccessTokenSilently,
+        getAccessToken,
         storyData
       );
 

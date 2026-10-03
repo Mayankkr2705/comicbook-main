@@ -85,7 +85,7 @@ export function AuthProvider({ children }) {
         _clear();
     }, []);
 
-    /** Returns the stored JWT — mirrors old Auth0 getAccessToken API */
+    /** Returns the stored local JWT for authenticated API requests. */
     const getAccessToken = useCallback(async () => {
         return token;
     }, [token]);
