@@ -1,25 +1,19 @@
 import { useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
 import {
-  Menu,
-  X,
-  Home,
-  Image,
-  User,
-  LogOut,
-  Sparkles,
-  BookOpen,
+  Menu, X, Home, Image, User, LogOut, Sparkles, BookOpen,
 } from "lucide-react";
 
 /**
- * AppLayout component provides navigation and layout structure
+ * AppLayout component — navigation and page wrapper
  * @param {Object} props
- * @param {React.ReactNode} props.children - Page content
- * @param {string} props.currentView - Current active view
- * @param {Function} props.onNavigate - Navigation callback
+ * @param {React.ReactNode} props.children
+ * @param {string} props.currentView
+ * @param {Function} props.onNavigate
+ * @param {Function} props.onShowAuth - opens auth modal with given tab
  */
-export default function AppLayout({ children, currentView, onNavigate }) {
-  const { user, isAuthenticated, logout } = useAuth0();
+export default function AppLayout({ children, currentView, onNavigate, onShowAuth }) {
+  const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -31,19 +25,18 @@ export default function AppLayout({ children, currentView, onNavigate }) {
 
   const handleNavigate = (viewId) => {
     setMobileMenuOpen(false);
-    if (onNavigate) {
-      onNavigate(viewId);
-    }
+    if (onNavigate) onNavigate(viewId);
   };
 
   const handleLogout = () => {
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    setMobileMenuOpen(false);
+    logout();
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-300 via-sky-200 to-pink-100">
       {/* Navigation Bar */}
-      <nav className="bg-white border-b-4 border-purple-400 sticky top-0 z-50 shadow-lg">
+      <nav className="bg-white border-b-4 border-purple-400 sticky top-0 z-40 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
@@ -62,10 +55,10 @@ export default function AppLayout({ children, currentView, onNavigate }) {
                 if (item.authRequired && !isAuthenticated) return null;
                 const Icon = item.icon;
                 const isActive = currentView === item.id;
-
                 return (
                   <button
                     key={item.id}
+                    id={`nav-${item.id}`}
                     onClick={() => handleNavigate(item.id)}
                     className={`btn-fun flex items-center gap-2 px-5 py-3 transition-all ${
                       isActive
@@ -83,24 +76,35 @@ export default function AppLayout({ children, currentView, onNavigate }) {
             {/* User Menu / Auth Buttons */}
             <div className="hidden md:flex items-center gap-3">
               {isAuthenticated ? (
-                <>
-                  {/* User Avatar Dropdown */}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleLogout}
-                      className="btn-fun flex items-center gap-2 p-4 bg-gradient-to-r from-red-400 to-pink-400 text-white hover:from-red-500 hover:to-pink-500"
-                    >
-                      <LogOut className="w-4 h-4" />
-                    </button>
-                  </div>
-                </>
+                <div className="flex items-center gap-3">
+                  <span className="text-purple-700 font-bold text-sm">
+                    👋 {user?.username}
+                  </span>
+                  <button
+                    id="nav-logout"
+                    onClick={handleLogout}
+                    className="btn-fun flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-red-400 to-pink-400 text-white hover:from-red-500 hover:to-pink-500"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
               ) : (
-                <button
-                  onClick={() => handleNavigate("login")}
-                  className="btn-fun px-6 py-3 bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white font-bold"
-                >
-                  Sign In
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    id="nav-login"
+                    onClick={() => onShowAuth?.('login')}
+                    className="btn-fun px-5 py-3 bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white font-bold"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    id="nav-register"
+                    onClick={() => onShowAuth?.('register')}
+                    className="btn-fun px-5 py-3 bg-gradient-to-r from-yellow-300 to-orange-300 hover:from-yellow-400 hover:to-orange-400 text-purple-900 font-bold"
+                  >
+                    Register
+                  </button>
+                </div>
               )}
             </div>
 
@@ -109,11 +113,7 @@ export default function AppLayout({ children, currentView, onNavigate }) {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden bg-gradient-to-r from-purple-400 to-pink-400 p-2 rounded-xl border-3 border-purple-600 shadow-lg"
             >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6 text-white" />
-              ) : (
-                <Menu className="w-6 h-6 text-white" />
-              )}
+              {mobileMenuOpen ? <X className="w-6 h-6 text-white" /> : <Menu className="w-6 h-6 text-white" />}
             </button>
           </div>
         </div>
@@ -126,7 +126,6 @@ export default function AppLayout({ children, currentView, onNavigate }) {
                 if (item.authRequired && !isAuthenticated) return null;
                 const Icon = item.icon;
                 const isActive = currentView === item.id;
-
                 return (
                   <button
                     key={item.id}
@@ -134,53 +133,50 @@ export default function AppLayout({ children, currentView, onNavigate }) {
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-bold ${
                       isActive
                         ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
-                        : "text-purple-700 hover:text-white hover:bg-gradient-to-r hover:from-yellow-300 hover:to-orange-300"
+                        : "text-purple-700 hover:bg-gradient-to-r hover:from-yellow-300 hover:to-orange-300"
                     }`}
                   >
                     <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <span>{item.label}</span>
                   </button>
                 );
               })}
 
-              {/* Mobile Auth Section */}
               <div className="pt-4 border-t-4 border-purple-300">
                 {isAuthenticated ? (
                   <>
                     <div className="flex items-center gap-3 px-4 py-3 mb-2 bg-white rounded-xl shadow-md">
-                      {user?.picture ? (
-                        <img
-                          src={user.picture}
-                          alt={user.name}
-                          className="w-10 h-10 rounded-full border-3 border-purple-400"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center border-3 border-purple-400">
-                          <User className="w-5 h-5 text-white" />
-                        </div>
-                      )}
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center border-3 border-purple-400">
+                        <User className="w-5 h-5 text-white" />
+                      </div>
                       <div>
-                        <p className="text-purple-900 font-bold text-sm">
-                          {user?.name || "User"}
-                        </p>
+                        <p className="text-purple-900 font-bold text-sm">{user?.username}</p>
                         <p className="text-purple-600 text-xs">{user?.email}</p>
                       </div>
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="btn-fun w-full flex items-center gap-3 px-4 py-3 text-white bg-gradient-to-r from-red-400 to-pink-400 hover:from-red-500 hover:to-pink-500 rounded-xl transition-colors font-bold"
+                      className="btn-fun w-full flex items-center gap-3 px-4 py-3 text-white bg-gradient-to-r from-red-400 to-pink-400 hover:from-red-500 hover:to-pink-500 rounded-xl font-bold"
                     >
                       <LogOut className="w-5 h-5" />
-                      <span className="font-medium">Logout</span>
+                      <span>Logout</span>
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={() => handleNavigate("login")}
-                    className="btn-fun w-full px-4 py-3 bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white rounded-xl transition-colors font-bold"
-                  >
-                    Sign In
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => { setMobileMenuOpen(false); onShowAuth?.('login'); }}
+                      className="btn-fun w-full px-4 py-3 bg-gradient-to-r from-blue-400 to-purple-500 text-white rounded-xl font-bold"
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      onClick={() => { setMobileMenuOpen(false); onShowAuth?.('register'); }}
+                      className="btn-fun w-full px-4 py-3 bg-gradient-to-r from-yellow-300 to-orange-300 text-purple-900 rounded-xl font-bold"
+                    >
+                      Register
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

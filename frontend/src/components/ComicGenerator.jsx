@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
 import { Loader2, Sparkles, Image as ImageIcon } from "lucide-react";
 import { aiService } from "../services/aiService";
 import { storyService } from "../services/storyService";
 
 export default function ComicGenerator() {
-  const { isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
+  const { isAuthenticated, getAccessToken } = useAuth();
+  const getAccessTokenSilently = getAccessToken;
 
   // Form state
   const [prompt, setPrompt] = useState("");
@@ -24,11 +25,6 @@ export default function ComicGenerator() {
   // Handle generate comic
   const handleGenerate = async (e) => {
     e.preventDefault();
-
-    if (!isAuthenticated) {
-      loginWithRedirect();
-      return;
-    }
 
     // Validate prompt
     if (!prompt.trim()) {
@@ -114,21 +110,6 @@ export default function ComicGenerator() {
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="card-fun bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl p-12 text-center shadow-xl">
-        <div className="text-7xl mb-6">🎨</div>
-        <h3 className="text-purple-900 text-3xl font-bold mb-4">Create Amazing Comics!</h3>
-        <p className="text-purple-700 mb-8 text-lg font-medium">Sign in to start creating AI-generated comics! ✨</p>
-        <button
-          onClick={() => loginWithRedirect()}
-          className="btn-fun px-10 py-5 bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white text-xl font-bold"
-        >
-          🚀 Sign In to Create!
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="card-fun bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-3xl p-8 shadow-xl">

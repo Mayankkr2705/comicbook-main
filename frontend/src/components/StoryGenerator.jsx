@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
 import { Loader2, BookOpen, Sparkles } from "lucide-react";
 import { aiService } from "../services/aiService";
 import { storyService } from "../services/storyService";
 import TextToSpeech from "./TextToSpeech";
 
 export default function StoryGenerator() {
-  const { isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
+  const { isAuthenticated, getAccessToken } = useAuth();
+  const getAccessTokenSilently = getAccessToken;
 
   // Form state
   const [prompt, setPrompt] = useState("");
@@ -25,11 +26,6 @@ export default function StoryGenerator() {
   // Handle generate story
   const handleGenerate = async (e) => {
     e.preventDefault();
-
-    if (!isAuthenticated) {
-      loginWithRedirect();
-      return;
-    }
 
     // Validate prompt
     if (!prompt.trim()) {
@@ -110,26 +106,6 @@ export default function StoryGenerator() {
     }
   };
 
-  // If not authenticated, show login prompt
-  if (!isAuthenticated) {
-    return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-        <BookOpen className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-        <h3 className="text-white text-2xl font-bold mb-2">
-          AI Story Generator
-        </h3>
-        <p className="text-gray-400 mb-6">
-          Sign in to generate creative stories using AI
-        </p>
-        <button
-          onClick={() => loginWithRedirect()}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-        >
-          Sign In
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="card-fun bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 rounded-3xl p-8">
