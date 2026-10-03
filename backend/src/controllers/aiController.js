@@ -172,7 +172,7 @@ async function generateWithOpenRouter(prompt, panels) {
       const response = await axios.post(
         "https://openrouter.ai/api/v1/chat/completions",
         {
-          model: "google/gemini-2.5-flash-image-preview", // Using Gemini through OpenRouter
+          model: "google/gemini-2.5-flash-image",
           messages: [
             {
               role: "user",
@@ -271,7 +271,7 @@ Write ONLY the story text, no title or additional formatting.`;
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "google/gemini-2.0-flash-exp:free",
+        model: "google/gemini-2.5-flash",
         messages: [
           {
             role: "user",
@@ -306,7 +306,7 @@ Write ONLY the story text, no title or additional formatting.`;
       success: true,
       story: generatedStory,
       wordCount,
-      model: "google/gemini-2.0-flash-exp",
+      model: "google/gemini-2.5-flash",
     });
   } catch (error) {
     // Log detailed error for debugging
