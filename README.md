@@ -13,7 +13,7 @@ A full-stack web application that leverages AI to generate creative comic strips
 
 ### User Management
 
-- **Auth0 Authentication**: Secure user authentication and authorization
+- **JWT Authentication**: Secure local user authentication and authorization
 - **User Profiles**: Personal profile pages with user statistics
 - **Story Management**: Create, edit, delete, and manage personal stories
 
@@ -47,7 +47,7 @@ A full-stack web application that leverages AI to generate creative comic strips
 - **React 19.1.1**: Modern UI library with hooks
 - **Vite**: Fast build tool and dev server
 - **Tailwind CSS 4.1**: Utility-first CSS framework
-- **Auth0 React**: Authentication integration
+- **React Context**: Authentication state and local JWT integration
 - **Lucide React**: Beautiful icon library
 - **Axios**: HTTP client for API requests
 
@@ -56,7 +56,7 @@ A full-stack web application that leverages AI to generate creative comic strips
 - **Node.js**: JavaScript runtime
 - **Express**: Web application framework
 - **MongoDB**: NoSQL database with Mongoose ODM
-- **Auth0**: Authentication and authorization
+- **JWT**: Authentication and authorization
 - **Cloudinary**: Image hosting and management
 - **OpenRouter SDK**: AI model integration
 - **JWT**: Token-based authentication
@@ -107,8 +107,8 @@ comicbook/
 │   │   │   ├── ComicGenerator.jsx      # Comic creation interface
 │   │   │   ├── CommentInput.jsx        # Comment input form
 │   │   │   ├── CommentSection.jsx      # Comments display
-│   │   │   ├── LoginButton.jsx         # Auth0 login
-│   │   │   ├── LogoutButton.jsx        # Auth0 logout
+│   │   │   ├── LoginButton.jsx         # Login control
+│   │   │   ├── LogoutButton.jsx        # Logout control
 │   │   │   ├── Profile.jsx             # User profile component
 │   │   │   ├── PublicPosts.jsx         # Public stories grid
 │   │   │   ├── StoryCard.jsx           # Individual story card
@@ -145,7 +145,7 @@ comicbook/
 
 - Node.js (v16 or higher)
 - MongoDB (local or cloud instance)
-- Auth0 account
+- MongoDB account or local MongoDB installation
 - OpenRouter API key
 - Cloudinary account
 
@@ -174,9 +174,8 @@ FRONTEND_URL=http://localhost:5173
 # MongoDB
 MONGODB_URI=your_mongodb_connection_string
 
-# Auth0
-AUTH0_DOMAIN=your-auth0-domain.auth0.com
-AUTH0_AUDIENCE=your-auth0-api-audience
+# Local JWT authentication
+# No frontend authentication provider configuration is required.
 
 # OpenRouter
 OPENROUTER_API_KEY=your_openrouter_api_key
@@ -215,10 +214,7 @@ npm install
 3. Create a `.env` file in the frontend directory:
 
 ```env
-VITE_AUTH0_DOMAIN=your-auth0-domain.auth0.com
-VITE_AUTH0_CLIENT_ID=your-auth0-client-id
-VITE_AUTH0_AUDIENCE=your-auth0-api-audience
-VITE_API_URL=http://localhost:3000
+VITE_API_BASE=http://localhost:3000
 ```
 
 4. Start the development server:
@@ -233,7 +229,7 @@ The frontend will run on `http://localhost:5173`
 
 ### Creating a Comic Strip
 
-1. Sign in using Auth0 authentication
+1. Sign in using the local email and password form
 2. Navigate to the "Create" page
 3. Enter a creative prompt describing your comic
 4. Select the AI provider (Gemini or OpenRouter)
@@ -302,7 +298,7 @@ The frontend will run on `http://localhost:5173`
 ### Users
 
 - `GET /users/profile` - Get user profile (authenticated)
-- `POST /users/sync` - Sync Auth0 user to database
+- `GET /users/profile` - Get the authenticated user's profile
 
 For detailed API documentation, see `backend/STORY_API.md`
 
@@ -310,7 +306,7 @@ For detailed API documentation, see `backend/STORY_API.md`
 
 ### User Model
 
-- `_id`: String (Auth0 user ID)
+- `_id`: MongoDB ObjectId user ID
 - `username`: String (unique, required)
 - `email`: String (unique)
 - `stories`: Array of Story references
@@ -346,11 +342,11 @@ For detailed API documentation, see `backend/STORY_API.md`
 
 ### Authentication & Authorization
 
-- Secure JWT-based authentication using Auth0
+- Secure JWT-based local authentication
 - Protected routes requiring valid access tokens
 - Role-based authorization for resource access
-- Automatic user creation on first login
-- Session management and token refresh
+- User creation during registration
+- Session management using a stored JWT
 
 ### AI Content Generation
 
@@ -383,8 +379,7 @@ For detailed API documentation, see `backend/STORY_API.md`
 ### Backend Required Variables
 
 - `MONGODB_URI` - MongoDB connection string
-- `AUTH0_DOMAIN` - Auth0 tenant domain
-- `AUTH0_AUDIENCE` - Auth0 API identifier
+- `JWT_SECRET` - Secret used to sign local authentication tokens
 - `OPENROUTER_API_KEY` - OpenRouter API key
 - `CLOUDINARY_CLOUD_NAME` - Cloudinary cloud name
 - `CLOUDINARY_API_KEY` - Cloudinary API key
@@ -392,10 +387,7 @@ For detailed API documentation, see `backend/STORY_API.md`
 
 ### Frontend Required Variables
 
-- `VITE_AUTH0_DOMAIN` - Auth0 tenant domain
-- `VITE_AUTH0_CLIENT_ID` - Auth0 application client ID
-- `VITE_AUTH0_AUDIENCE` - Auth0 API identifier
-- `VITE_API_URL` - Backend API URL
+- `VITE_API_BASE` - Backend API URL
 
 ## Deployment
 
@@ -411,7 +403,7 @@ For detailed API documentation, see `backend/STORY_API.md`
 1. Update API URL in environment variables
 2. Build production bundle: `npm run build`
 3. Deploy to static hosting (Vercel, Netlify, etc.)
-4. Configure Auth0 callback URLs with production domain
+4. Configure CORS with the production frontend domain
 
 ## Development
 
@@ -460,9 +452,8 @@ npm run preview
 
 1. **Authentication Errors**
 
-   - Verify Auth0 credentials are correct
-   - Check callback URLs in Auth0 dashboard
-   - Ensure audience matches between frontend and backend
+   - Verify the email and password are correct
+   - Ensure the backend JWT secret is configured consistently
 
 2. **AI Generation Failures**
 
@@ -500,7 +491,7 @@ This project is developed by Team Dev Null for educational purposes.
 
 ## Acknowledgments
 
-- Auth0 for authentication services
+- JWT for authentication services
 - OpenRouter for AI model access
 - Cloudinary for image hosting
 - MongoDB for database services
