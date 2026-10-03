@@ -2,7 +2,7 @@ import express from 'express';
 import Story from '../models/Story.js';
 import Vote from '../models/Vote.js';
 import Comment from '../models/Comment.js';
-import { checkJwt, addUserInfo } from '../middleware/auth.js';
+import { checkJwt, addUserInfo, optionalAuth } from '../middleware/auth.js';
 import { voteStory, removeVote } from '../controllers/voteController.js';
 import commentRouter from './comment.js';
 
@@ -71,8 +71,8 @@ router.get('/my-stories', checkJwt, addUserInfo, async (req, res) => {
     }
 });
 
-// GET single story by ID
-router.get('/:id', async (req, res) => {
+// GET single story by ID (optionalAuth so guests see public stories, logged-in users see vote status)
+router.get('/:id', optionalAuth, async (req, res) => {
     try {
         const story = await Story.findById(req.params.id)
             .populate('author', 'username email')
@@ -84,17 +84,15 @@ router.get('/:id', async (req, res) => {
 
         // Check if story is private and user is not the author
         if (story.visibility === 'private') {
-            // If no auth or not the author, deny access
-            if (!req.auth || req.auth.sub !== story.author._id.toString()) {
+            if (!req.user || req.user.id !== story.author._id.toString()) {
                 return res.status(403).json({ error: 'Access denied to private story' });
             }
         }
 
         // Check for user's vote if authenticated
         let userVote = null;
-        if (req.auth) {
-            const userId = req.auth.sub;
-            const vote = await Vote.findOne({ story: req.params.id, user: userId });
+        if (req.user) {
+            const vote = await Vote.findOne({ story: req.params.id, user: req.user.id });
             if (vote) {
                 userVote = vote.voteType;
             }

@@ -1,96 +1,68 @@
-import { expressjwt } from "express-jwt";
-import jwks from "jwks-rsa";
-import User from "../models/User.js";
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
-// Auth0 JWT validation middleware
-export const checkJwt = expressjwt({
-  secret: jwks.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
-  }),
-  audience: process.env.AUTH0_AUDIENCE, // Your API identifier
-  issuer: `https://${process.env.AUTH0_DOMAIN}/`,
-  algorithms: ['RS256']
-});
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key-change-in-production';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-// Optional middleware to check for user info
-export const checkAuth = (req, res, next) => {
-  if (!req.auth) {
-    return res.status(401).json({
-      error: 'Access denied. No valid token provided.'
-    });
-  }
-  next();
+/**
+ * Generate a JWT token for a user
+ */
+export const generateToken = (userId) => {
+    return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
 
-// Middleware to add user info to request
-export const addUserInfo = (req, res, next) => {
-  if (req.auth) {
-    req.user = {
-      id: req.auth.sub,
-      ...req.auth
-    };
-  }
-  next();
+/**
+ * Middleware: verify JWT and attach user to req.user
+ * Rejects request if token is missing or invalid.
+ */
+export const checkJwt = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Access denied. No token provided.' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, JWT_SECRET);
+
+        const user = await User.findById(decoded.id);
+        if (!user) {
+            return res.status(401).json({ error: 'User no longer exists.' });
+        }
+
+        req.user = { id: user._id.toString(), email: user.email, username: user.username };
+        next();
+    } catch (error) {
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ error: 'Invalid token.' });
+        }
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token expired. Please log in again.' });
+        }
+        res.status(500).json({ error: 'Authentication error.' });
+    }
 };
 
-// Middleware to find or create user on first login
-export const findOrCreateUser = async (req, res, next) => {
-  try {
-    if (!req.auth) {
-      return res.status(401).json({
-        error: 'Authentication required'
-      });
+/**
+ * Middleware: optionally attach user if token present — does NOT block unauthenticated requests.
+ * Used for routes that work for both guests and logged-in users.
+ */
+export const optionalAuth = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) return next();
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const user = await User.findById(decoded.id);
+        if (user) {
+            req.user = { id: user._id.toString(), email: user.email, username: user.username };
+        }
+    } catch {
+        // Ignore errors — just continue as guest
     }
-
-    const userId = req.auth.sub;
-
-    // Extract user info from Auth0 JWT
-    // Auth0 typically provides: sub (user ID), email, name, nickname, etc.
-    const email = req.auth.email || req.auth[`${process.env.AUTH0_AUDIENCE}/email`];
-    const name = req.auth.name || req.auth.nickname || req.auth[`${process.env.AUTH0_AUDIENCE}/name`];
-
-    // Try to find existing user
-    let user = await User.findById(userId);
-
-    if (!user) {
-      // Create new user if doesn't exist
-      // Generate a username from email or name
-      let username = name || email?.split('@')[0] || `user_${userId.slice(-8)}`;
-
-      // Ensure username is unique by appending numbers if needed
-      let baseUsername = username;
-      let counter = 1;
-      while (await User.findOne({ username })) {
-        username = `${baseUsername}${counter}`;
-        counter++;
-      }
-
-      user = new User({
-        _id: userId,
-        username,
-        email: email || undefined,
-        stories: []
-      });
-
-      await user.save();
-      console.log(`[Auth] Created new user: ${userId} (${username})`);
-    }
-
-    // Add user to request
-    req.user = {
-      id: userId,
-      ...req.auth
-    };
-
     next();
-  } catch (error) {
-    console.error('[Auth] Error in findOrCreateUser:', error);
-    res.status(500).json({
-      error: 'Failed to initialize user',
-      message: error.message
-    });
-  }
 };
+
+// Kept for compatibility — checkJwt already adds user info
+export const addUserInfo = (_req, _res, next) => next();
